@@ -32,4 +32,8 @@ post '/' do
 	redirect '/'
 end
 
-
+get '/:id' do
+	@note = Note.get params[:id] # Retreive teh requested note from the database using the ID provided
+	@title = "Edit note ##{params[:id]}" # Set up a @title variable
+  erb :edit # Load the views/edit.erb view file through the ERB parser (soon to be haml parser ;)
+end
