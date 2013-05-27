@@ -37,3 +37,14 @@ get '/:id' do
 	@title = "Edit note ##{params[:id]}" # Set up a @title variable
   erb :edit # Load the views/edit.erb view file through the ERB parser (soon to be haml parser ;)
 end
+
+put '/:id' do
+	n = Note.get params[:id]
+	n.content = params[:content]
+	n.complete = params[:complete] ? 1 : 0 # Using the ternary operator to set n.complete to 1 if the params[:complete] exists,
+	                                       # or 0 otherwise. The value of a checkbox is only submitted with a form if it is checked,
+	                                       # so we're simply checking for the existence of it.
+	n.updated_at = Time.now
+	n.save
+	redirect '/'
+end
