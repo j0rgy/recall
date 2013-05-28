@@ -1,0 +1,21 @@
+!!! html
+%html(lang="en")
+%head
+	%meta(charset="utf8")
+	%title #{@title} | Recall
+	%link(href="/reset.csS" rel="stylesheet")
+	%link(href="/style.css" rel="stylesheet")
+%body
+	%header>
+		%hgroup
+			%h1
+				%a(href="/")
+					Recall
+			%h2 'cause you're too busy to remember
+
+	%div#main
+		= yield
+
+	%footer
+		%p
+			<small>An app from <a href="http://www.johnjorg.com">John Jorgensen</a>

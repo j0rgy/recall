@@ -1,6 +1,7 @@
 require_relative "recall/version"
 require "sinatra"
 require "data_mapper"
+require "haml"
 
 DataMapper::setup(:default, "sqlite3://#{Dir.pwd}/recall.db")
 
@@ -20,7 +21,7 @@ get '/' do
 	@notes = Note.all :order => :id.desc # Retreive all the notes from the database. Using an @ instance variable here
 	                                     # so that it wil be accessable from within the view file 
 	@title = 'All Notes'
-	erb :home
+	haml :home
 end
 
 post '/' do
@@ -33,9 +34,9 @@ post '/' do
 end
 
 get '/:id' do
-	@note = Note.get params[:id] # Retreive teh requested note from the database using the ID provided
+	@note = Note.get params[:id] # Retrieve the requested note from the database using the ID provided
 	@title = "Edit note ##{params[:id]}" # Set up a @title variable
-  erb :edit # Load the views/edit.erb view file through the ERB parser (soon to be haml parser ;)
+  haml :edit # Load the views/edit.erb view file through the ERB parser (soon to be haml parser ;)
 end
 
 put '/:id' do
@@ -44,6 +45,26 @@ put '/:id' do
 	n.complete = params[:complete] ? 1 : 0 # Using the ternary operator to set n.complete to 1 if the params[:complete] exists,
 	                                       # or 0 otherwise. The value of a checkbox is only submitted with a form if it is checked,
 	                                       # so we're simply checking for the existence of it.
+	n.updated_at = Time.now
+	n.save
+	redirect '/'
+end
+
+get '/:id/delete' do
+	@note = Note.get params[:id]
+	@title = "Confirm deletion of note ##{params[:id]}"
+	haml :delete
+end
+
+delete '/:id' do
+	n = Note.get params[:id]
+	n.destroy
+	redirect '/'
+end
+
+get '/:id/complete' do
+	n = Note.get params[:id]
+	n.complete = n.complete ? 0 : 1 # flip it - if complete set incomplete and vice versa
 	n.updated_at = Time.now
 	n.save
 	redirect '/'
