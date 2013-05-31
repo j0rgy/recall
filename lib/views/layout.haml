@@ -1,17 +1,19 @@
 !!! html
 %html(lang="en")
 %head
+	%a(href="/rss.xml" rel="alternate" type="application/rss+xml")
 	%meta(charset="utf8")
-	%title #{@title} | Recall
+	%title #{@title} | #{SITE_TITLE}
 	%link(href="/reset.csS" rel="stylesheet")
 	%link(href="/style.css" rel="stylesheet")
 %body
-	%header>
+	%header
 		%hgroup
 			%h1
 				%a(href="/")
-					Recall
-			%h2 'cause you're too busy to remember
+					= SITE_TITLE
+			%h2
+				= SITE_DESCRIPTION
 
 	%div#main
 		= yield

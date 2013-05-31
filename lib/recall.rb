@@ -3,6 +3,9 @@ require "sinatra"
 require "data_mapper"
 require "haml"
 
+SITE_TITLE = "Recall"
+SITE_DESCRIPTION = "'cause you're too busy to remember"
+
 DataMapper::setup(:default, "sqlite3://#{Dir.pwd}/recall.db")
 
 class Note
@@ -16,6 +19,10 @@ end
 
 DataMapper.finalize.auto_upgrade! # autmomatically update the database to contain the tables and fields
                                   # we've set, and to do so again if we make any changes to the schema
+helpers do
+	include Rack::Utils
+	alias_method :h, :escape_html
+end
 
 get '/' do
 	@notes = Note.all :order => :id.desc # Retreive all the notes from the database. Using an @ instance variable here
@@ -33,10 +40,16 @@ post '/' do
 	redirect '/'
 end
 
+get '/rss.xml' do
+	@notes = Note.all :order => :id.desc
+	builder :rss
+end
+
 get '/:id' do
-	@note = Note.get params[:id] # Retrieve the requested note from the database using the ID provided
-	@title = "Edit note ##{params[:id]}" # Set up a @title variable
-  haml :edit # Load the views/edit.erb view file through the ERB parser (soon to be haml parser ;)
+    Note.get params[:id]
+		@note = Note.get params[:id] # Retrieve the requested note from the database using the ID provided
+		@title = "Edit note ##{params[:id]}" # Set up a @title variable
+  	haml :edit # Load the views/edit.erb view file through the ERB parser (soon to be haml parser ;)
 end
 
 put '/:id' do
