@@ -16,6 +16,12 @@
 				= SITE_DESCRIPTION
 
 	%div#main
+		- if flash[:notice]
+			%p.notice
+				= flash[:notice]
+		- if flash[:error]
+			%p.error
+				= flash[:error]
 		= yield
 
 	%footer

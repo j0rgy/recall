@@ -2,6 +2,10 @@ require_relative "recall/version"
 require "sinatra"
 require "data_mapper"
 require "haml"
+require "sinatra/flash"
+require "sinatra/redirect_with_flash"
+
+enable :sessions # support for encrypted, cookie-based sessions
 
 SITE_TITLE = "Recall"
 SITE_DESCRIPTION = "'cause you're too busy to remember"
@@ -28,6 +32,9 @@ get '/' do
 	@notes = Note.all :order => :id.desc # Retreive all the notes from the database. Using an @ instance variable here
 	                                     # so that it wil be accessable from within the view file 
 	@title = 'All Notes'
+	if @notes.empty?
+		flash.sweep[:notice] = 'No notes found. Add your first below.'
+	end
 	haml :home
 end
 
@@ -36,8 +43,11 @@ post '/' do
 	n.content = params[:content] # The content field is set to the submitted data from the text area
 	n.created_at = Time.now # current timestamp
 	n.updated_at = Time.now # current timestamp
-	n.save
-	redirect '/'
+	if n.save
+		redirect '/', :notice => 'Note created successfully.'
+	else
+		redirect '/', :error => 'Failed to save note.'
+	end
 end
 
 get '/rss.xml' do
@@ -49,7 +59,11 @@ get '/:id' do
     Note.get params[:id]
 		@note = Note.get params[:id] # Retrieve the requested note from the database using the ID provided
 		@title = "Edit note ##{params[:id]}" # Set up a @title variable
-  	haml :edit # Load the views/edit.erb view file through the ERB parser (soon to be haml parser ;)
+		if @note
+  		haml :edit # Load the views/edit.erb view file through the ERB parser (soon to be haml parser ;)
+  	else
+  		redirect '/', :error => "Can't find that note."
+  	end
 end
 
 put '/:id' do
@@ -59,26 +73,39 @@ put '/:id' do
 	                                       # or 0 otherwise. The value of a checkbox is only submitted with a form if it is checked,
 	                                       # so we're simply checking for the existence of it.
 	n.updated_at = Time.now
-	n.save
-	redirect '/'
+	if n.save
+		redirect '/', :notice => "Note updated successfully."
+	else
+		redirect '/', :error => 'Error updating note.'
+	end
 end
 
 get '/:id/delete' do
 	@note = Note.get params[:id]
 	@title = "Confirm deletion of note ##{params[:id]}"
-	haml :delete
+	if @note
+		haml :delete
+	else
+		redirect '/', :error => "Can't find that note."
+	end
 end
 
 delete '/:id' do
 	n = Note.get params[:id]
-	n.destroy
-	redirect '/'
+	if n.destroy
+		redirect '/', :notice => 'Note deleted successfully.'
+	else
+		redirect '/', :error => 'Error deleting note.'
+	end
 end
 
 get '/:id/complete' do
 	n = Note.get params[:id]
 	n.complete = n.complete ? 0 : 1 # flip it - if complete set incomplete and vice versa
 	n.updated_at = Time.now
-	n.save
-	redirect '/'
+	if n.save
+		redirect '/', :notice => "Note marked as complete."
+	else
+		redirect '/', :error => "Error marking note as complete."
+	end
 end
